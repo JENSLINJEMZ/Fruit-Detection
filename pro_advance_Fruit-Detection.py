@@ -39,6 +39,9 @@ class FruitAnalysisResult:
     ai_analysis: Optional[Dict] = None
     timestamp: datetime = None
     image: Optional[np.ndarray] = None
+    detailed_analysis: str = ""
+    key_observations: List[str] = None
+    treatment_options: List[str] = None
 
 class AdvancedFruitAnalyzerUI:
     def __init__(self, api_key):
@@ -898,7 +901,8 @@ class AdvancedFruitAnalyzerUI:
                 table_frame,
                 text=change_text,
                 font=ctk.CTkFont(size=12, weight="bold"),
-                text_color=change_color            )
+                text_color=change_color
+            )
             change_label.grid(row=i, column=3, padx=15, pady=5, sticky="w")
             
         # Recommendations based on comparison
@@ -1073,7 +1077,7 @@ class AdvancedFruitAnalyzerUI:
             
         # Display the historical results
         self.current_result = result
-        self.display_detailed_results(result)
+        self.display_analysis_results(result)
         
     def show_reports_view(self):
         """Show reports view"""
@@ -1842,6 +1846,30 @@ class AdvancedFruitAnalyzerUI:
             )
             value_widget.pack(side="left", padx=20)
             
+        # Detailed analysis text
+        if result.detailed_analysis:
+            analysis_frame = ctk.CTkFrame(main_frame, fg_color="#444444", corner_radius=10)
+            analysis_frame.pack(fill="x", padx=15, pady=15)
+            
+            analysis_title = ctk.CTkLabel(
+                analysis_frame,
+                text="📝 Detailed Analysis",
+                font=ctk.CTkFont(size=14, weight="bold"),
+                text_color="#ffffff"
+            )
+            analysis_title.pack(anchor="w", padx=15, pady=(10, 5))
+            
+            analysis_text = ctk.CTkLabel(
+                analysis_frame,
+                text=result.detailed_analysis,
+                font=ctk.CTkFont(size=12),
+                text_color="#cccccc",
+                wraplength=600,
+                anchor="w",
+                justify="left"
+            )
+            analysis_text.pack(anchor="w", padx=15, pady=(0, 10))
+            
     def display_health_details(self, result):
         """Display health and disease information"""
         # Clear content
@@ -1946,6 +1974,34 @@ class AdvancedFruitAnalyzerUI:
         )
         safety_text.pack(pady=20, padx=30)
         
+        # Key observations
+        if result.key_observations:
+            obs_frame = ctk.CTkFrame(self.health_content, fg_color="#333333", corner_radius=10)
+            obs_frame.pack(fill="x", padx=10, pady=10)
+            
+            obs_title = ctk.CTkLabel(
+                obs_frame,
+                text="🔍 Key Observations",
+                font=ctk.CTkFont(size=16, weight="bold"),
+                text_color="#ffffff"
+            )
+            obs_title.pack(pady=(15, 10))
+            
+            for obs in result.key_observations[:5]:
+                obs_item = ctk.CTkFrame(obs_frame, fg_color="#444444", corner_radius=6)
+                obs_item.pack(fill="x", padx=15, pady=3)
+                
+                obs_label = ctk.CTkLabel(
+                    obs_item,
+                    text=f"• {obs}",
+                    font=ctk.CTkFont(size=12),
+                    text_color="#cccccc",
+                    wraplength=500,
+                    anchor="w",
+                    justify="left"
+                )
+                obs_label.pack(anchor="w", padx=10, pady=5)
+                
     def display_metrics_details(self, result):
         """Display quality metrics"""
         # Clear content
@@ -2071,7 +2127,7 @@ class AdvancedFruitAnalyzerUI:
         canvas.get_tk_widget().pack(fill="both", expand=True, padx=20, pady=(0, 20))
         
     def display_recommendations(self, result):
-        """Display recommendations and prevention tips"""
+        """Display recommendations and prevention tips with full details"""
         # Clear content
         for widget in self.recommendations_content.winfo_children():
             widget.destroy()
@@ -2098,7 +2154,7 @@ class AdvancedFruitAnalyzerUI:
                 text=result.action_required.upper(),
                 font=ctk.CTkFont(size=16, weight="bold"),
                 text_color="#ffffff",
-                wraplength=500
+                wraplength=600
             )
             action_text.pack(pady=(0, 15))
             
@@ -2124,7 +2180,7 @@ class AdvancedFruitAnalyzerUI:
                     text=f"{i}. {tip}",
                     font=ctk.CTkFont(size=14),
                     text_color="#aaffaa",
-                    wraplength=500,
+                    wraplength=550,
                     anchor="w",
                     justify="left"
                 )
@@ -2148,25 +2204,169 @@ class AdvancedFruitAnalyzerUI:
                 text=result.storage_advice,
                 font=ctk.CTkFont(size=14),
                 text_color="#cccccc",
-                wraplength=500,
+                wraplength=600,
                 justify="left"
             )
             storage_text.pack(padx=20, pady=(0, 15))
             
+        # Treatment options
+        if result.treatment_options:
+            treatment_frame = ctk.CTkFrame(self.recommendations_content, fg_color="#3a3a2a", corner_radius=10)
+            treatment_frame.pack(fill="x", padx=10, pady=10)
+            
+            treatment_title = ctk.CTkLabel(
+                treatment_frame,
+                text="🏥 Treatment Options",
+                font=ctk.CTkFont(size=16, weight="bold"),
+                text_color="#FFA500"
+            )
+            treatment_title.pack(pady=(15, 10))
+            
+            for treatment in result.treatment_options:
+                treat_label = ctk.CTkLabel(
+                    treatment_frame,
+                    text=f"→ {treatment}",
+                    font=ctk.CTkFont(size=13),
+                    text_color="#FFD700",
+                    anchor="w",
+                    wraplength=550
+                )
+                treat_label.pack(anchor="w", padx=30, pady=3)
+                
+            treatment_frame.pack(pady=(0, 10))
+            
+        # Best practices based on condition
+        practices_frame = ctk.CTkFrame(self.recommendations_content, fg_color="#2a2a3a", corner_radius=10)
+        practices_frame.pack(fill="x", padx=10, pady=10)
+        
+        practices_title = ctk.CTkLabel(
+            practices_frame,
+            text="📚 Best Practices",
+            font=ctk.CTkFont(size=16, weight="bold"),
+            text_color="#9C27B0"
+        )
+        practices_title.pack(pady=(15, 10))
+        
+        # Generate practices based on condition
+        practices = self.get_best_practices(result.condition, result.fruit_type)
+        
+        for practice in practices:
+            practice_label = ctk.CTkLabel(
+                practices_frame,
+                text=f"✓ {practice}",
+                font=ctk.CTkFont(size=13),
+                text_color="#E1BEE7",
+                anchor="w",
+                wraplength=550
+            )
+            practice_label.pack(anchor="w", padx=30, pady=3)
+            
+        practices_frame.pack(pady=(0, 10))
+        
+    def get_best_practices(self, condition, fruit_type):
+        """Get best practices based on condition"""
+        practices = {
+            'EXCELLENT': [
+                f"Maintain current storage conditions for {fruit_type}",
+                "Continue regular quality checks",
+                "Keep away from damaged fruits",
+                "Monitor temperature and humidity",
+                "Use within optimal consumption window"
+            ],
+            'GOOD': [
+                f"Store {fruit_type} in cool, dry place",
+                "Check daily for any changes",
+                "Use within recommended timeframe",
+                "Separate from overripe fruits",
+                "Maintain proper ventilation"
+            ],
+            'FAIR': [
+                "Increase monitoring frequency",
+                "Consider immediate consumption",
+                "Separate from healthy fruits",
+                "Review storage conditions",
+                "Plan to use within 1-2 days"
+            ],
+            'POOR': [
+                "Use immediately or process",
+                "Remove from main storage",
+                "Consider cooking or juicing",
+                "Check nearby fruits for spread",
+                "Improve storage practices"
+            ],
+            'BAD': [
+                "Dispose of properly",
+                "Clean storage area thoroughly",
+                "Check all stored fruits",
+                "Review purchasing practices",
+                "Implement better quality control"
+            ]
+        }
+        
+        # Find matching practices
+        for key in practices:
+            if key in condition:
+                return practices[key]
+                
+        return practices.get('FAIR', [])
+        
     def display_technical_data(self, result):
-        """Display technical analysis data"""
+        """Display comprehensive technical analysis data"""
         # Clear content
         for widget in self.technical_content.winfo_children():
             widget.destroy()
             
+        # Analysis summary
+        summary_frame = ctk.CTkFrame(self.technical_content, fg_color="#333333", corner_radius=10)
+        summary_frame.pack(fill="x", padx=10, pady=10)
+        
+        summary_title = ctk.CTkLabel(
+            summary_frame,
+            text="📊 Analysis Summary",
+            font=ctk.CTkFont(size=18, weight="bold"),
+            text_color="#ffffff"
+        )
+        summary_title.pack(pady=(15, 10))
+        
+        # Summary data
+        summary_data = [
+            ("Analysis Timestamp", result.timestamp.strftime("%Y-%m-%d %H:%M:%S") if result.timestamp else "N/A"),
+            ("Primary Data Source", "AI Analysis" if result.ai_analysis else "Computer Vision"),
+            ("Total Defects Found", str(len(result.defects))),
+            ("Overall Quality Score", f"{result.freshness_score:.1f}/100")
+        ]
+        
+        for label, value in summary_data:
+            sum_frame = ctk.CTkFrame(summary_frame, fg_color="transparent")
+            sum_frame.pack(fill="x", padx=20, pady=3)
+            
+            sum_label = ctk.CTkLabel(
+                sum_frame,
+                text=f"{label}:",
+                font=ctk.CTkFont(size=13),
+                text_color="#888888",
+                width=200,
+                anchor="w"
+            )
+            sum_label.pack(side="left")
+            
+            sum_value = ctk.CTkLabel(
+                sum_frame,
+                text=value,
+                font=ctk.CTkFont(size=13, weight="bold"),
+                text_color="#ffffff",
+                anchor="w"
+            )
+            sum_value.pack(side="left", padx=20)
+            
         # Raw data frame
         data_frame = ctk.CTkFrame(self.technical_content, fg_color="#333333", corner_radius=10)
-        data_frame.pack(fill="x", padx=10, pady=10)
+        data_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
         data_title = ctk.CTkLabel(
             data_frame,
-            text="📊 Technical Analysis Data",
-            font=ctk.CTkFont(size=18, weight="bold"),
+            text="📄 Complete Technical Data",
+            font=ctk.CTkFont(size=16, weight="bold"),
             text_color="#ffffff"
         )
         data_title.pack(pady=(15, 10))
@@ -2177,39 +2377,75 @@ class AdvancedFruitAnalyzerUI:
             fg_color="#222222",
             corner_radius=8,
             font=ctk.CTkFont(family="Consolas", size=12),
-            height=300
+            height=400
         )
         json_frame.pack(fill="both", expand=True, padx=15, pady=(0, 15))
         
-        # Format and display data
+        # Format and display comprehensive data
         technical_data = {
-            "fruit_type": result.fruit_type,
-            "condition": result.condition,
-            "confidence": result.confidence,
-            "ripeness": result.ripeness,
-            "safety": result.safety,
-            "freshness_score": result.freshness_score,
-            "defects_found": result.defects,
-            "disease_identification": result.disease_identification,
-            "local_metrics": result.local_metrics,
-            "timestamp": result.timestamp.isoformat() if result.timestamp else None
+            "analysis_metadata": {
+                "timestamp": result.timestamp.isoformat() if result.timestamp else None,
+                "analyzer_version": "2.0",
+                "confidence_score": result.confidence
+            },
+            "fruit_identification": {
+                "type": result.fruit_type,
+                "condition": result.condition,
+                "ripeness": result.ripeness
+            },
+            "health_assessment": {
+                "safety": result.safety,
+                "defects_found": result.defects,
+                "disease_identification": result.disease_identification
+            },
+            "quality_metrics": {
+                "freshness_score": result.freshness_score,
+                "brown_rot_percentage": result.local_metrics['brown_rot_percentage'],
+                "black_spots_percentage": result.local_metrics['black_spots_percentage'],
+                "shape_integrity": result.local_metrics['shape_integrity'],
+                "color_variance": result.local_metrics['color_variance'],
+                "texture_score": result.local_metrics['texture_score']
+            },
+            "recommendations": {
+                "action_required": result.action_required,
+                "storage_advice": result.storage_advice,
+                "prevention_tips": result.prevention_tips,
+                "treatment_options": result.treatment_options if result.treatment_options else []
+            },
+            "ai_analysis_details": result.ai_analysis if result.ai_analysis else {},
+            "observations": result.key_observations if result.key_observations else []
         }
         
+        # Format as JSON
         json_text = json.dumps(technical_data, indent=2)
         json_frame.insert("1.0", json_text)
         json_frame.configure(state="disabled")
         
-        # Export button
-        export_btn = ctk.CTkButton(
-            data_frame,
-            text="📥 Export Technical Data",
-            command=lambda: self.export_technical_data(technical_data),
-            font=ctk.CTkFont(size=14, weight="bold"),
-            height=40,
+        # Export buttons
+        export_frame = ctk.CTkFrame(data_frame, fg_color="transparent")
+        export_frame.pack(pady=(0, 15))
+        
+        export_json_btn = ctk.CTkButton(
+            export_frame,
+            text="📥 Export as JSON",
+            command=lambda: self.export_technical_data(technical_data, "json"),
+            font=ctk.CTkFont(size=12, weight="bold"),
+            height=35,
             corner_radius=8,
             fg_color="#2196F3"
         )
-        export_btn.pack(pady=(0, 15))
+        export_json_btn.pack(side="left", padx=5)
+        
+        export_csv_btn = ctk.CTkButton(
+            export_frame,
+            text="📊 Export as CSV",
+            command=lambda: self.export_technical_data(technical_data, "csv"),
+            font=ctk.CTkFont(size=12, weight="bold"),
+            height=35,
+            corner_radius=8,
+            fg_color="#4CAF50"
+        )
+        export_csv_btn.pack(side="left", padx=5)
         
     def clear_all_result_tabs(self):
         """Clear all result tab contents"""
@@ -2243,7 +2479,7 @@ class AdvancedFruitAnalyzerUI:
         
         # Combine results
         if ai_result:
-            # Use AI results as primary
+            # Use AI results as primary with enhanced data
             return FruitAnalysisResult(
                 condition=self.map_condition(ai_result.get('condition_category', 'FAIR')),
                 confidence=ai_result.get('confidence_score', 70),
@@ -2253,16 +2489,29 @@ class AdvancedFruitAnalyzerUI:
                 ripeness=ai_result.get('ripeness', 'unknown'),
                 safety=ai_result.get('safety_assessment', 'questionable'),
                 action_required=ai_result.get('action_required', 'Monitor condition'),
-                prevention_tips=ai_result.get('prevention_tips', []),
+                prevention_tips=ai_result.get('prevention_tips', self.get_default_prevention_tips()),
                 storage_advice=ai_result.get('storage_advice', 'Store properly'),
                 disease_identification=ai_result.get('disease_identification', 'None detected'),
                 local_metrics=local_metrics,
-                ai_analysis=ai_result
+                ai_analysis=ai_result,
+                detailed_analysis=ai_result.get('detailed_analysis', ''),
+                key_observations=ai_result.get('key_observations', []),
+                treatment_options=ai_result.get('treatment_options', [])
             )
         else:
             # Fallback to local analysis
             return self.create_result_from_local(local_metrics)
             
+    def get_default_prevention_tips(self):
+        """Get default prevention tips"""
+        return [
+            "Store fruits in cool, dry place with good ventilation",
+            "Check fruits daily for signs of decay or damage",
+            "Remove any damaged fruits immediately to prevent spread",
+            "Maintain proper temperature and humidity levels",
+            "Use fruits in order of ripeness (first in, first out)"
+        ]
+        
     def map_condition(self, ai_condition):
         """Map AI condition to display format"""
         mapping = {
@@ -2286,22 +2535,27 @@ class AdvancedFruitAnalyzerUI:
             condition = "🚫 BAD CONDITION - DO NOT CONSUME"
             action = "Discard immediately"
             safety = "unsafe to eat"
+            treatment = ["Dispose of properly in compost", "Clean storage area"]
         elif bad_score > 15 or freshness < 50:
             condition = "⚠️ POOR CONDITION - USE IMMEDIATELY"
             action = "Use within 24 hours or discard"
             safety = "questionable"
+            treatment = ["Cut away affected areas", "Use for cooking only"]
         elif bad_score > 8 or freshness < 70:
             condition = "⚠️ FAIR CONDITION - MONITOR CLOSELY"
             action = "Use within 2-3 days"
             safety = "safe if consumed soon"
+            treatment = ["Store separately", "Check twice daily"]
         elif freshness > 85 and bad_score < 3:
             condition = "🌟 EXCELLENT CONDITION - PREMIUM QUALITY"
             action = "Enjoy at your convenience"
             safety = "safe to eat"
+            treatment = []
         else:
             condition = "✅ GOOD CONDITION - FRESH & HEALTHY"
             action = "Consume normally"
             safety = "safe to eat"
+            treatment = []
             
         return FruitAnalysisResult(
             condition=condition,
@@ -2312,10 +2566,17 @@ class AdvancedFruitAnalyzerUI:
             ripeness="unknown",
             safety=safety,
             action_required=action,
-            prevention_tips=["Store in cool, dry place", "Check daily", "Use proper ventilation"],
-            storage_advice="Store according to fruit type",
+            prevention_tips=self.get_default_prevention_tips(),
+            storage_advice="Store according to fruit type in cool, dry place",
             disease_identification="Visual inspection needed",
-            local_metrics=local_metrics
+            local_metrics=local_metrics,
+            detailed_analysis="Analysis based on computer vision metrics only",
+            key_observations=[
+                f"Freshness score: {freshness:.0f}%",
+                f"Decay level: {local_metrics['brown_rot_percentage']:.1f}%",
+                f"Black spots: {local_metrics['black_spots_percentage']:.1f}%"
+            ],
+            treatment_options=treatment
         )
         
     def perform_local_analysis(self, image):
@@ -2437,21 +2698,49 @@ class AdvancedFruitAnalyzerUI:
         try:
             image_base64 = self.encode_image_base64(image)
             
-            prompt = """You are an expert fruit quality inspector. Analyze this fruit image and provide detailed assessment.
+            prompt = """You are an expert fruit quality inspector with 20+ years experience. 
+            Analyze this fruit image with extreme attention to detail.
+
+CRITICAL INSPECTION PROTOCOL:
+
+1. FRUIT IDENTIFICATION:
+   - Identify the exact type and variety of fruit
+   - Note any unique characteristics
+
+2. CONDITION ASSESSMENT:
+   - Check for any defects, damage, or disease
+   - Examine color, texture, and surface condition
+   - Look for signs of decay, mold, or insect damage
+
+3. QUALITY CLASSIFICATION (BE STRICT):
+   - EXCELLENT: Perfect specimen, no flaws
+   - GOOD: Minor cosmetic imperfections only
+   - FAIR: Some quality issues but edible
+   - POOR: Significant problems, use immediately
+   - BAD: Inedible, health risk, discard
+   - INSECT_DAMAGED: Clear pest damage
+
+4. DETAILED RECOMMENDATIONS:
+   - Specific storage instructions
+   - Prevention tips for issues found
+   - Treatment options if applicable
 
 RESPOND IN EXACT JSON FORMAT:
 {
     "fruit_type": "specific fruit name",
     "condition_category": "EXCELLENT/GOOD/FAIR/POOR/BAD/INSECT_DAMAGED",
     "confidence_score": 85,
-    "defects_found": ["list all defects"],
-    "ripeness": "under-ripe/ripe/overripe/rotten",
+    "detailed_analysis": "comprehensive description of condition",
+    "defects_found": ["list all defects found"],
+    "ripeness": "under-ripe/perfectly-ripe/ripe/overripe/rotten",
     "freshness_score": 75,
     "safety_assessment": "safe/questionable/unsafe to eat",
     "disease_identification": "specific disease if any",
-    "prevention_tips": ["5 prevention tips"],
-    "storage_advice": "storage recommendations",
-    "action_required": "immediate action needed"
+    "key_observations": ["5 most important observations"],
+    "prevention_tips": ["5 specific prevention methods"],
+    "storage_advice": "detailed storage recommendations",
+    "action_required": "immediate action needed",
+    "treatment_options": ["ways to treat or use the fruit"]
 }"""
 
             payload = {
@@ -2552,8 +2841,62 @@ RESPOND IN EXACT JSON FORMAT:
         
     def export_excel_report(self):
         """Export Excel report"""
-        self.show_notification("📊 Excel export coming soon", "info")
+        if not self.current_result:
+            self.show_notification("⚠️ No analysis to export", "warning")
+            return
+            
+        # Create CSV data
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = filedialog.asksaveasfilename(
+            defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
+            initialfile=f"fruit_analysis_{timestamp}.csv"
+        )
         
+        if filename:
+            try:
+                import csv
+                with open(filename, 'w', newline='') as file:
+                    writer = csv.writer(file)
+                    
+                    # Headers
+                    writer.writerow(['Metric', 'Value'])
+                    
+                    # Data
+                    data = [
+                        ['Analysis Date', datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+                        ['Fruit Type', self.current_result.fruit_type],
+                        ['Condition', self.current_result.condition],
+                        ['Confidence', f"{self.current_result.confidence}%"],
+                        ['Freshness Score', f"{self.current_result.freshness_score}%"],
+                        ['Safety Assessment', self.current_result.safety],
+                        ['Ripeness', self.current_result.ripeness],
+                        ['Decay Level', f"{self.current_result.local_metrics['brown_rot_percentage']}%"],
+                        ['Black Spots', f"{self.current_result.local_metrics['black_spots_percentage']}%"],
+                        ['Shape Integrity', f"{self.current_result.local_metrics['shape_integrity']}%"],
+                        ['Action Required', self.current_result.action_required],
+                        ['Storage Advice', self.current_result.storage_advice]
+                    ]
+                    
+                    writer.writerows(data)
+                    
+                    # Add defects
+                    writer.writerow([])
+                    writer.writerow(['Defects Found'])
+                    for defect in self.current_result.defects:
+                        writer.writerow(['', defect])
+                        
+                    # Add prevention tips
+                    writer.writerow([])
+                    writer.writerow(['Prevention Tips'])
+                    for tip in self.current_result.prevention_tips:
+                        writer.writerow(['', tip])
+                        
+                self.show_notification("✅ Excel/CSV report saved successfully!", "success")
+                
+            except Exception as e:
+                self.show_notification(f"❌ Export failed: {str(e)}", "error")
+                
     def save_analysis_image(self):
         """Save analysis as image"""
         if not self.current_result:
@@ -2572,49 +2915,126 @@ RESPOND IN EXACT JSON FORMAT:
             self.show_notification("✅ Report saved successfully!", "success")
             
     def create_report_image(self, filename):
-        """Create report image"""
+        """Create comprehensive report image"""
         # Create image
-        img = Image.new('RGB', (1200, 1600), color='#0a0a0a')
+        img_width = 1400
+        img_height = 2000
+        img = Image.new('RGB', (img_width, img_height), color='#0a0a0a')
         draw = ImageDraw.Draw(img)
         
-        # Try to load font
+        # Try to load fonts
         try:
-            font_large = ImageFont.truetype("arial.ttf", 36)
-            font_medium = ImageFont.truetype("arial.ttf", 24)
+            font_title = ImageFont.truetype("arial.ttf", 48)
+            font_header = ImageFont.truetype("arial.ttf", 32)
+            font_body = ImageFont.truetype("arial.ttf", 24)
             font_small = ImageFont.truetype("arial.ttf", 18)
         except:
-            font_large = font_medium = font_small = ImageFont.load_default()
+            font_title = font_header = font_body = font_small = ImageFont.load_default()
             
         y = 50
         
         # Title
-        draw.text((600, y), "FRUIT QUALITY ANALYSIS REPORT", 
-                 font=font_large, fill='white', anchor='mt')
+        draw.text((img_width//2, y), "FRUIT QUALITY ANALYSIS REPORT", 
+                 font=font_title, fill='white', anchor='mt')
         y += 80
         
         # Date
-        draw.text((600, y), datetime.now().strftime("%B %d, %Y"), 
+        draw.text((img_width//2, y), datetime.now().strftime("%B %d, %Y at %I:%M %p"), 
                  font=font_small, fill='#888888', anchor='mt')
-        y += 60
+        y += 80
         
-        # Results
+        # Main image
+        if self.current_image_cv2 is not None:
+            # Convert and resize
+            image_rgb = cv2.cvtColor(self.current_image_cv2, cv2.COLOR_BGR2RGB)
+            pil_image = Image.fromarray(image_rgb)
+            pil_image.thumbnail((600, 400), Image.Resampling.LANCZOS)
+            
+            # Center and paste
+            x_offset = (img_width - pil_image.width) // 2
+            img.paste(pil_image, (x_offset, y))
+            y += pil_image.height + 50
+            
+        # Condition box
         result = self.current_result
-        draw.text((100, y), f"Condition: {result.condition}", 
-                 font=font_medium, fill='white')
-        y += 40
+        condition_color = self.get_condition_color(result.condition)
         
-        draw.text((100, y), f"Fruit Type: {result.fruit_type}", 
-                 font=font_medium, fill='white')
-        y += 40
+        # Draw condition background
+        draw.rectangle((100, y, img_width-100, y+100), 
+                      fill=condition_color, outline='white', width=3)
+        draw.text((img_width//2, y+50), result.condition, 
+                 font=font_header, fill='white', anchor='mm')
+        y += 130
         
-        draw.text((100, y), f"Freshness: {result.freshness_score:.0f}%", 
-                 font=font_medium, fill='white')
-        y += 40
+        # Key Information
+        draw.text((150, y), "KEY INFORMATION", font=font_header, fill='#4CAF50')
+        y += 50
         
-        draw.text((100, y), f"Safety: {result.safety}", 
-                 font=font_medium, fill='white')
+        info_items = [
+            f"Fruit Type: {result.fruit_type}",
+            f"AI Confidence: {result.confidence:.0f}%",
+            f"Freshness Score: {result.freshness_score:.0f}%",
+            f"Safety Assessment: {result.safety}",
+            f"Ripeness: {result.ripeness}",
+            f"Action Required: {result.action_required}"
+        ]
         
-        img.save(filename)
+        for item in info_items:
+            draw.text((200, y), f"• {item}", font=font_body, fill='white')
+            y += 35
+            
+        y += 30
+        
+        # Quality Metrics
+        draw.text((150, y), "QUALITY METRICS", font=font_header, fill='#4CAF50')
+        y += 50
+        
+        metrics = [
+            f"Decay Level: {result.local_metrics['brown_rot_percentage']:.1f}%",
+            f"Black Spots: {result.local_metrics['black_spots_percentage']:.1f}%",
+            f"Shape Integrity: {result.local_metrics['shape_integrity']:.0f}%",
+            f"Color Variance: {result.local_metrics['color_variance']:.1f}",
+            f"Texture Score: {result.local_metrics['texture_score']:.1f}"
+        ]
+        
+        for metric in metrics:
+            draw.text((200, y), f"• {metric}", font=font_body, fill='white')
+            y += 35
+            
+        y += 30
+        
+        # Defects Found
+        if result.defects:
+            draw.text((150, y), "DEFECTS DETECTED", font=font_header, fill='#FF0000')
+            y += 50
+            
+            for defect in result.defects[:5]:
+                draw.text((200, y), f"⚠️ {defect}", font=font_body, fill='#FF9999')
+                y += 35
+                
+            y += 30
+            
+        # Prevention Tips
+        if result.prevention_tips:
+            draw.text((150, y), "PREVENTION TIPS", font=font_header, fill='#4CAF50')
+            y += 50
+            
+            for i, tip in enumerate(result.prevention_tips[:5], 1):
+                # Wrap long text
+                if len(tip) > 70:
+                    tip = tip[:70] + "..."
+                draw.text((200, y), f"{i}. {tip}", font=font_body, fill='#90EE90')
+                y += 35
+                
+        # Footer
+        y = img_height - 100
+        draw.text((img_width//2, y), "Generated by Fruit Health Inspector Pro", 
+                 font=font_small, fill='#666666', anchor='mt')
+        draw.text((img_width//2, y+30), "AI-Powered Analysis System", 
+                 font=font_small, fill='#666666', anchor='mt')
+        
+        # Save
+        img.save(filename, quality=95)
         
     def export_json_data(self):
         """Export JSON data"""
@@ -2629,24 +3049,85 @@ RESPOND IN EXACT JSON FORMAT:
         )
         
         if filename:
-            self.export_technical_data({
-                "fruit_type": self.current_result.fruit_type,
-                "condition": self.current_result.condition,
-                "metrics": self.current_result.local_metrics,
-                "timestamp": datetime.now().isoformat()
-            })
+            # Prepare comprehensive data
+            export_data = {
+                "analysis_metadata": {
+                    "timestamp": datetime.now().isoformat(),
+                    "analyzer_version": "2.0",
+                    "confidence_score": self.current_result.confidence
+                },
+                "fruit_identification": {
+                    "type": self.current_result.fruit_type,
+                    "condition": self.current_result.condition,
+                    "ripeness": self.current_result.ripeness
+                },
+                "health_assessment": {
+                    "safety": self.current_result.safety,
+                    "defects_found": self.current_result.defects,
+                    "disease_identification": self.current_result.disease_identification
+                },
+                "quality_metrics": self.current_result.local_metrics,
+                "recommendations": {
+                    "action_required": self.current_result.action_required,
+                    "storage_advice": self.current_result.storage_advice,
+                    "prevention_tips": self.current_result.prevention_tips,
+                    "treatment_options": self.current_result.treatment_options if self.current_result.treatment_options else []
+                },
+                "detailed_analysis": self.current_result.detailed_analysis,
+                "key_observations": self.current_result.key_observations if self.current_result.key_observations else [],
+                "ai_analysis_raw": self.current_result.ai_analysis if self.current_result.ai_analysis else {}
+            }
+            
+            with open(filename, 'w') as f:
+                json.dump(export_data, f, indent=2)
+                
             self.show_notification("✅ Data exported successfully!", "success")
             
-    def export_technical_data(self, data):
-        """Export technical data to file"""
-        filename = filedialog.asksaveasfilename(
-            defaultextension=".json",
-            filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
-        )
+    def export_technical_data(self, data, format):
+        """Export technical data in specified format"""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
-        if filename:
-            with open(filename, 'w') as f:
-                json.dump(data, f, indent=2)
+        if format == "json":
+            filename = filedialog.asksaveasfilename(
+                defaultextension=".json",
+                filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+                initialfile=f"technical_data_{timestamp}.json"
+            )
+            
+            if filename:
+                with open(filename, 'w') as f:
+                    json.dump(data, f, indent=2)
+                self.show_notification("✅ Technical data exported as JSON!", "success")
+                
+        elif format == "csv":
+            filename = filedialog.asksaveasfilename(
+                defaultextension=".csv",
+                filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
+                initialfile=f"technical_data_{timestamp}.csv"
+            )
+            
+            if filename:
+                # Flatten the nested structure for CSV
+                import csv
+                
+                with open(filename, 'w', newline='') as file:
+                    writer = csv.writer(file)
+                    writer.writerow(['Category', 'Metric', 'Value'])
+                    
+                    # Flatten the data
+                    for category, category_data in data.items():
+                        if isinstance(category_data, dict):
+                            for key, value in category_data.items():
+                                if isinstance(value, list):
+                                    writer.writerow([category, key, ', '.join(str(v) for v in value)])
+                                else:
+                                    writer.writerow([category, key, str(value)])
+                        elif isinstance(category_data, list):
+                            writer.writerow([category, 'items', ', '.join(str(v) for v in category_data)])
+                        else:
+                            writer.writerow([category, 'value', str(category_data)])
+                            
+                self.show_notification("✅ Technical data exported as CSV!", "success")
                 
     # Settings methods (placeholders)
     def change_theme(self, theme):
@@ -2702,6 +3183,9 @@ def main():
     
     # Run app
     print("🚀 Launching Fruit Health Inspector Pro...")
+    print("📊 Features: Complete analysis, recommendations, and technical data")
+    print("💡 All tabs now fully functional with detailed information\n")
+    
     app = AdvancedFruitAnalyzerUI(API_KEY)
     app.run()
 
